@@ -34,6 +34,8 @@ import errno
 import shutil
 import stat
 import sys
+import random
+import string
 import subprocess
 import tarfile
 import traceback
@@ -176,9 +178,16 @@ def rm_rf(path, max_retries=5):
                     (stdout, stderr) = p.communicate()
                     if p.returncode != 0:
                         msg += '%s\n%s\n' % (stdout, stderr)
-                    else:
-                        if not isdir(path):
-                            return
+
+                        suffix = ''.join((random.choice(string.ascii_letters)
+                                          for _ in range(4)))
+                        path_ = '{p}{s}'.format(p=path, s=suffix)
+                        os.rename(path, path_)
+                        shutil.rmtree(path_)
+                        path = path_
+
+                    if not isdir(path):
+                        return
 
                 log.debug(msg + "Retrying after %s seconds..." % i)
                 time.sleep(i)
